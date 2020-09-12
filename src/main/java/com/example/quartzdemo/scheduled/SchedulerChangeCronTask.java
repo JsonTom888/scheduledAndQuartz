@@ -2,21 +2,22 @@ package com.example.quartzdemo.scheduled;
 
 import com.example.quartzdemo.dao.ScheduledCronMapper;
 import com.example.quartzdemo.model.ScheduledCron;
+import com.example.quartzdemo.scheduled.immediately.ScheduledImmediately;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.SchedulingConfigurer;
 import org.springframework.scheduling.config.ScheduledTaskRegistrar;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.util.StringUtils;
 
 /**
+ * 该方法能够改变定时任务执行时间，但是不能立即生效
+ *
  * @author tom
  * @version V1.0
  * @date 2020/9/12 14:59
  */
-@Configuration
-@EnableScheduling
+//@Configuration
+//@EnableScheduling
 public class SchedulerChangeCronTask implements SchedulingConfigurer {
 
     private static String cron = "*/3 * * * * ?";
@@ -24,13 +25,14 @@ public class SchedulerChangeCronTask implements SchedulingConfigurer {
     @Autowired
     ScheduledCronMapper scheduledCronMapper;
 
+    @Autowired
+    ScheduledImmediately scheduledImmediately;
+
+
     @Override
     public void configureTasks(ScheduledTaskRegistrar taskRegistrar) {
 
-        ScheduledCron scheduledCron = scheduledCronMapper.select("scheduledCron");
-        if(scheduledCron != null){
-            cron = scheduledCron.getDateCron();
-        }
+
         taskRegistrar.addTriggerTask(
                 //1.添加任务内容(Runnable)
                 //其中configureTasks()是需要执行的任务
@@ -38,6 +40,19 @@ public class SchedulerChangeCronTask implements SchedulingConfigurer {
                 //2.设置执行周期(Trigger)
                 triggerContext -> {
                     //2.1 从数据库获取执行周期
+                    ScheduledCron scheduledCron = scheduledCronMapper.select("scheduledCron");
+                    if(scheduledCron != null){
+                        if(cron.equals(scheduledCron.getDateCron())){
+                            scheduledImmediately.stop();
+                            scheduledImmediately.start();
+                            System.out.println("重启定时任务，数据库查到的数据："+scheduledCron.getDateCron());
+                        }else{
+                            cron = scheduledCron.getDateCron();
+                            System.out.println("数据库查到的数据："+cron);
+                        }
+                    }else{
+                        System.out.println("数据库没有查到的数据啦。。。。。");
+                    }
                     System.out.println("数据库cron="+cron);
                     //2.2 合法性校验.
                     if (StringUtils.isEmpty(cron)) {

@@ -2,6 +2,7 @@ package com.example.quartzdemo.dao;
 
 import com.example.quartzdemo.model.ScheduledCron;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
 
 /**
  * @author tom
@@ -16,4 +17,7 @@ public interface ScheduledCronMapper {
 //            @Result(property = "type", column = "type", javaType = String.class)
 //    })
     ScheduledCron select(String type);
+
+    @Update("update scheduled_cron set dateCron = #{dateCron} where type = #{type}")
+    int updateCron(String type,String dateCron);
 }
