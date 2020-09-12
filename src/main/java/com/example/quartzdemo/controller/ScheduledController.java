@@ -31,7 +31,7 @@ public class ScheduledController {
 
     @GetMapping("updateCron")
     public Object updateCron(String dateCron){
-        int count = scheduledCronMapper.updateCron("scheduledCron",dateCron);
+        int count = scheduledCronMapper.updateCron("immediately",dateCron);
         if(count != 0){
             scheduledImmediately.stop();
             scheduledImmediately.start();
